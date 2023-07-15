@@ -1,4 +1,4 @@
-from selenium import webdriver
+import requests
 import os
 import subprocess
 import time
@@ -20,7 +20,7 @@ def dos_website(url):
 
     # Test the website for dos attack vulnerability
     # subprocess.run(['./dos-tool.sh'], shell=True)
-    subprocess.run(['ping'], url)
+    subprocess.run(['ping', url])
 
 
 def capture_screenshot(url, screenshot_duration):
@@ -30,11 +30,6 @@ def capture_screenshot(url, screenshot_duration):
     :param screenshot_duration:
     :return:
     """
-
-    # specify the path to chromedriver if it's not in your PATH
-    driver = webdriver.Chrome('ChromeDriver/chromedriver')
-
-    driver.get(url)
 
     start_time = time.time()
 
@@ -53,8 +48,15 @@ def capture_screenshot(url, screenshot_duration):
         # Set the screenshot filename
         screenshot_filename = f"screenshot_{now_str}.png"
 
-        # Take a screenshot using Selenium
-        driver.save_screenshot(screenshot_filename)
+        response = requests.get(url)
+
+        # Print the HTTP headers
+        # print(f"Headers: {response.headers}")
+
+        print(f"Status: {response.status_code} {response.reason}")
+
+        # Print the HTML content of the page
+        # print(f"Content: {response.text}")
 
         # Log the screenshot
         logging.info(f"Took screenshot: {screenshot_filename}")
@@ -62,12 +64,11 @@ def capture_screenshot(url, screenshot_duration):
         # Wait for 5 seconds between screenshots
         time.sleep(5)
 
-    # Close the browser after the loop is finished
-    driver.quit()
 
 # Create threads for each function
-t1 = threading.Thread(target=dos_website("http://example.com"))
-t2 = threading.Thread(target=capture_screenshot("http://example.com", 900))
+t1 = threading.Thread(target=dos_website, args=("example.com",))
+t2 = threading.Thread(target=capture_screenshot, args=("http://example.com", 900))
+
 
 # Start the threads
 t1.start()
