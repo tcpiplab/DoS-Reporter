@@ -18,16 +18,23 @@ colorama.init(autoreset=True)
 
 def dos_website(url):
 
+    logging.info(f"Beginning DoS attack on {url}")
+
+    print(Fore.RED + f"Beginning DoS attack on {url}")
+
     # Test the website for dos attack vulnerability
     # subprocess.run(['./dos-tool.sh'], shell=True)
+
+    # For testing purposes, use the ping command instead of slowhttptest
     subprocess.run(['ping', url])
 
 
-def capture_screenshot(url, screenshot_duration):
+
+def check_target_status(url, attack_duration):
     """
     Take a screenshot every 5 seconds for the specified duration.
     :param url:
-    :param screenshot_duration:
+    :param attack_duration:
     :return:
     """
 
@@ -35,31 +42,21 @@ def capture_screenshot(url, screenshot_duration):
 
     while True:
 
-        # exit the loop if screenshot_duration seconds have passed
-        if time.time() - start_time > screenshot_duration:
+        # exit the loop if attack_duration seconds have passed
+        if time.time() - start_time > attack_duration:
             break
-
-        # Get the current date and time
-        now = datetime.datetime.now()
-
-        # Format it as a string
-        now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
-
-        # Set the screenshot filename
-        screenshot_filename = f"screenshot_{now_str}.png"
 
         response = requests.get(url)
 
-        # Print the HTTP headers
-        # print(f"Headers: {response.headers}")
+        logging.info(f"Response: {response.status_code} {response.reason}")
 
-        print(f"Status: {response.status_code} {response.reason}")
+        if response.status_code == 200:
+            print(Fore.GREEN + f"Status: {response.status_code} {response.reason}")
+        else:
+            print(Fore.RED + f"Status: {response.status_code} {response.reason}")
 
-        # Print the HTML content of the page
-        # print(f"Content: {response.text}")
-
-        # Log the screenshot
-        logging.info(f"Took screenshot: {screenshot_filename}")
+            # Print the HTML content of the page
+            print(f"Content: {response.text}")
 
         # Wait for 5 seconds between screenshots
         time.sleep(5)
@@ -67,7 +64,7 @@ def capture_screenshot(url, screenshot_duration):
 
 # Create threads for each function
 t1 = threading.Thread(target=dos_website, args=("example.com",))
-t2 = threading.Thread(target=capture_screenshot, args=("http://example.com", 900))
+t2 = threading.Thread(target=check_target_status, args=("http://example.com", 900))
 
 
 # Start the threads
