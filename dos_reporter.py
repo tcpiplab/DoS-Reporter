@@ -7,10 +7,7 @@ import threading
 from colorama import Fore, Back, Style
 import colorama
 import logging
-
-# Setup logging
-logging.basicConfig(filename='screenshot_log.log', level=logging.INFO,
-                    format='%(asctime)s - %(message)s')
+from log_setup import dos_logger, target_status_logger, log_response
 
 # Initialize the colorama module
 colorama.init(autoreset=True)
@@ -18,7 +15,7 @@ colorama.init(autoreset=True)
 
 def dos_website(url):
 
-    logging.info(f"Beginning DoS attack on {url}")
+    dos_logger.info(f"Beginning DoS attack on {url}")
 
     print(Fore.RED + f"Beginning DoS attack on {url}")
 
@@ -38,6 +35,8 @@ def check_target_status(url, attack_duration):
     :return:
     """
 
+    target_status_logger.info(f"Checking status of {url} every 5 seconds for {attack_duration} seconds")
+
     start_time = time.time()
 
     while True:
@@ -48,15 +47,22 @@ def check_target_status(url, attack_duration):
 
         response = requests.get(url)
 
-        logging.info(f"Response: {response.status_code} {response.reason}")
+        if response.status_code == 418:
 
-        if response.status_code == 200:
-            print(Fore.GREEN + f"Status: {response.status_code} {response.reason}")
+            target_status_logger.info(f"Response: {response.status_code} {response.reason}")
+
         else:
-            print(Fore.RED + f"Status: {response.status_code} {response.reason}")
 
-            # Print the HTML content of the page
-            print(f"Content: {response.text}")
+            target_status_logger.info(f"Response: {response.status_code} {response.reason}")
+
+            log_response(response)
+
+
+            # for key, value in response.headers.items():
+            #
+            #     target_status_logger.info(f"{key}: {value}")
+            #
+            # target_status_logger.info(f"{response.text}")
 
         # Wait for 5 seconds between screenshots
         time.sleep(5)
