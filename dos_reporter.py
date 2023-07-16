@@ -7,7 +7,7 @@ import threading
 from colorama import Fore, Back, Style
 import colorama
 import logging
-from log_setup import dos_logger, target_status_logger, log_response
+from log_setup import dos_logger, target_status_logger, log_response, log_request
 
 # Initialize the colorama module
 colorama.init(autoreset=True)
@@ -15,9 +15,9 @@ colorama.init(autoreset=True)
 
 def dos_website(url):
 
-    dos_logger.info(f"Beginning DoS attack on {url}")
+    target_status_logger.info(f"Beginning DoS attack on {url}")
 
-    print(Fore.RED + f"Beginning DoS attack on {url}")
+    # print(Fore.RED + f"Beginning DoS attack on {url}")
 
     # Test the website for dos attack vulnerability
     # subprocess.run(['./dos-tool.sh'], shell=True)
@@ -45,24 +45,32 @@ def check_target_status(url, attack_duration):
         if time.time() - start_time > attack_duration:
             break
 
-        response = requests.get(url)
+        # response = requests.get(url)
 
+        session = requests.Session()
+        request = requests.Request('GET', url)
+        prepared_request = session.prepare_request(request)
+        # log_request(prepared_request)
+        response = session.send(prepared_request)
+
+        # During development, pretend that 418 is "normal" so that we can
+        # see the log output for 200 as if that was a successful DoS response
         if response.status_code == 418:
 
+            # Log just the status code and reason
             target_status_logger.info(f"Response: {response.status_code} {response.reason}")
 
         else:
 
-            target_status_logger.info(f"Response: {response.status_code} {response.reason}")
+            target_status_logger.info(f"------------BEGIN DoS Request and Response------------")
 
+            # Log the full HTTP request, including headers and body
+            log_request(prepared_request)
+
+            # Log the full HTTP response, including headers and body
             log_response(response)
 
-
-            # for key, value in response.headers.items():
-            #
-            #     target_status_logger.info(f"{key}: {value}")
-            #
-            # target_status_logger.info(f"{response.text}")
+            target_status_logger.info(f"------------END DoS Request and Response------------")
 
         # Wait for 5 seconds between screenshots
         time.sleep(5)
